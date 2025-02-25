@@ -23,5 +23,5 @@ The package exports a single function `download_wid(...)`. See `?download_wid` f
 
 ## Demo
 
-See `vignette("wid-demo")`, or [click here](https://github.com/world-inequality-database/wid-r-tool/blob/master/vignettes/wid-demo.pdf) for a demonstration
+See `vignette("wid-demo")`, or [click here](https://github.com/WIDworld/wid-r-tool/raw/master/inst/doc/wid-demo.pdf) for a demonstration
 of the package.

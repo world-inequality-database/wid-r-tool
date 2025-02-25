@@ -1,7 +1,7 @@
 ---
 title: "Download data from WID.world into R"
 author: |
-    | Author: Thomas Blanchet (updated by Ignacio Flores)
+    | Thomas Blanchet
     | Paris School of Economics -- EHESS
 date: "\\today"
 header-includes:
@@ -27,7 +27,7 @@ library(knitr)
 library(tidyverse)
 ```
 
-The World Inequality Database (WID.world) is an extensive source on the historical evolution of the distribution of income and wealth both within and between countries. It relies on the combined effort of an international network of over a hundred researchers covering more than seventy countries from all continents.
+The World Wealth and Income Database (WID.world) is an extensive source on the historical evolution of the distribution of income and wealth both within and between countries. It relies on the combined effort of an international network of over a hundred researchers covering more than seventy countries from all continents.
 
 Anyone can access and plot the data through the website [WID.world](http://wid.world). For more advanced users, we provide the R package `wid`, which lets them download the data from WID.world directly into R.\footnote{A similar package for Stata users exists: see \texttt{\url{http://econpapers.repec.org/software/bocbocode/s458357.htm}}.} It exports a single function called `download_wid`. This vignette explains how to use it.
 
@@ -46,31 +46,19 @@ download_wid(
     verbose, # Logical: should it display messages showing progress
     include_extrapolations # Logical: should it include data based on extrapolations/interpolations
 )
-```
+````
 
 \paragraph{Indicators}
 The argument `indicators` is a vector of 6-letter codes that corresponds to a given series type for a given income or wealth concept. The first letter correspond to the type of series.  Some of the most common possibilities include:
 \begin{tabularx}{\textwidth}{p{5cm}X}
 \toprule
 one-letter code & description         \\ \midrule
-\texttt{a}               & average (local currency unit, last year’s prices)             \\
-\texttt{b}               & inverted Pareto-Lorenz coefficient (no unit)                 \\
-\texttt{f}               & female population (fraction, between 0 and 1)                \\
-\texttt{g}               & Gini coefficient (between 0 and 1)                            \\
-\texttt{i}               & index (no unit)                                              \\
-\texttt{n}               & population (people)                                          \\
-\texttt{s}               & share (fraction, between 0 and 1)                            \\
-\texttt{t}               & threshold (local currency unit, last year’s prices)          \\
-\texttt{m}               & total (local currency unit, last year’s prices)              \\
-\texttt{p}               & proportion of women (fraction, between 0 and 1)             \\
-\texttt{w}               & wealth-to-income ratio or labor/capital share (fraction of national income) \\
-\texttt{r}               & Top 10/Bottom 50 ratio (no unit)                             \\
-\texttt{x}               & exchange rate (market or PPP) (local currency unit per foreign currency) \\
-\texttt{e}               & Total emissions (Tons of CO2 equivalent emissions)           \\
-\texttt{k}               & Per capita emissions (Tons of CO2 equivalent emissions)      \\
-\texttt{l}               & Average per capita group emissions (Tons of CO2 equivalent per capita emissions) \\ \bottomrule
+\texttt{a}               & average             \\
+\texttt{s}               & share               \\
+\texttt{t}               & threshold           \\
+\texttt{m}               & macroeconomic total \\
+\texttt{w}               & wealth/income ratio \\ \bottomrule
 \end{tabularx}
-
 Type `?wid_series_type` to access the complete list. The next five letters correspond a concept (usually of income and wealth). Some of the most common possibilities include:
 \begin{tabularx}{\textwidth}{p{5cm}X}
 \toprule
@@ -100,20 +88,10 @@ The key feature of WID.world is that it provides data on the whole distribution,
 Data may only concern the population in a certain age group. The argument `ages` is a vector of age codes that specify which age categories to retrieve. Ages are coded using 3-digit codes. Some of the most common possibilities include:
 \begin{tabularx}{\textwidth}{p{5cm}X}
 \toprule
-3-digit code & description \\ \midrule
-\texttt{999}          & all ages \\
-\texttt{014}          & ages 0-14 \\
-\texttt{156}          & ages 15-64 \\
-\texttt{997}          & ages 65+ \\
-\texttt{991}          & ages 0-19 \\
-\texttt{992}          & ages 20+ (adults, including elderly) \\
-\texttt{993}          & ages 20-39 \\
-\texttt{994}          & ages 40-59 \\
-\texttt{995}          & ages 60+ \\
-\texttt{996}          & ages 20-64 (adults, excluding elderly) \\
-\texttt{998}          & ages 80+ \\
-\bottomrule
-
+3-digit code & description                       \\ \midrule
+\texttt{999}          & all ages                          \\
+\texttt{992}          & adults, including elderly (20+)   \\
+\texttt{996}          & adults, excluding elderly (20-65) \\ \bottomrule
 \end{tabularx}
 Type `?wid_age_codes` to access the complete list of age codes. If you don't specify any age, it defaults to `"all"` and downloads data for all available age groups.
 
@@ -122,14 +100,10 @@ Type `?wid_age_codes` to access the complete list of age codes. If you don't spe
 The data in WID.world can refer to different types of population (i.e. different statistical units). The argument `pop` is a vector of population codes. They are coded using one-letter codes. Some of the most common possibilities include:
 \begin{tabularx}{\textwidth}{p{4cm}X}
 \toprule
-one-letter code & description \\ \midrule
-\texttt{i}               & individuals \\
-\texttt{j}               & equal-split adults (i.e., income or wealth divided equally among spouses) \\
-\texttt{m}               & male \\
-\texttt{f}               & female \\
-\texttt{t}               & tax units \\
-\texttt{e}               & employed \\ \bottomrule
-
+one-letter code & description                                                             \\ \midrule
+\texttt{i}               & individuals                                                             \\
+\texttt{t}               & tax units                                                               \\
+\texttt{j}               & equal-split adults (ie. income or wealth divided equally among spouses) \\ \bottomrule
 \end{tabularx}
 Type `?wid_population_codes` to access the complete list of population types. If you don't specify any code, it defaults to `"all"` and downloads data for all types of population.
 
@@ -178,8 +152,7 @@ kable(data) # Pretty display of the data.frame
 If we also request the metadata, the `data.frame` also contains additional columns with extra information.
 
 ```{r}
-library(plyr)
-data <- wid::download_wid(
+data <- download_wid(
     indicators = "sptinc", # Shares of pre-tax national income
     areas = "US", # In the United States
     years = 2010:2015, # Time period: 2010-2015
@@ -226,18 +199,16 @@ data <- download_wid(
     indicators = "aptinc", # Average pre-tax national income
     areas = c("FR", "CN", "US"), # France, China and United States
     perc = "p0p50", # Bottom half of the population
-    ages = "992",
     pop = "j", # Equal-split individuals
     year = 1978:2015
-) %>% dplyr::rename(value_lcu = value)
-
+) %>% rename(value_lcu = value)
 
 # Purchasing power parities with US dollar
 ppp <- download_wid(
     indicators = "xlcusp", # US PPP
     areas = c("FR", "CN", "US"), # France, China and United States
     year = 2016 # Reference year only
-) %>% dplyr::rename(ppp = value) %>% select(-year, -percentile)
+) %>% rename(ppp = value) %>% select(-year, -percentile)
 
 # Convert from local currency to PPP US dollar
 data <- merge(data, ppp, by = "country") %>%
@@ -255,20 +226,19 @@ ggplot(data) +
 We now plot the evolution of average net national income per adult in France, Germany, the United Kingdom and the United States.
 
 ```{r, message=FALSE, fig.align='center', fig.height=4}
-
 # Average national income data
 data <- download_wid(
     indicators = "anninc", # Average net national income
     areas = c("FR", "US", "DE", "GB"),
     ages = 992 # Adults
-) %>% dplyr::rename(value_lcu = value)
+) %>% rename(value_lcu = value)
 
 # Purchasing power parities with US dollar
 ppp <- download_wid(
     indicators = "xlcusp", # US PPP
     areas = c("FR", "US", "DE", "GB"), # France, China and United States
     year = 2016 # Reference year only
-) %>% dplyr::rename(ppp = value) %>% select(-year, -percentile)
+) %>% rename(ppp = value) %>% select(-year, -percentile)
 
 # Convert from local currency to PPP US dollar
 data <- merge(data, ppp, by = "country") %>%
@@ -292,13 +262,12 @@ Yet another way of observing an increase in inequality is to observe how the dif
 data <- download_wid(
     indicators = "tptinc", # Thresholds of pre-tax national income
     areas = "US", # United States
-    pop = "j",
     perc = c("p10p100", "p50p100", "p90p100", "p99p100", "p99.9p100")
 )
 
 # Keep the value for 1970 in a separate data.frame
 data1970 <- data %>% filter(year == 1970) %>%
-    dplyr::rename(value1970 = value) %>%
+    rename(value1970 = value) %>%
     select(-year)
 
 # Divide series by the reference year (1970)
