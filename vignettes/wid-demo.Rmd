@@ -21,7 +21,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r load_packages, include=FALSE}
+```{r, load_packages, include=FALSE, eval=interactive()}
 library(wid)
 library(knitr)
 library(tidyverse)
@@ -34,7 +34,7 @@ Anyone can access and plot the data through the website [WID.world](http://wid.w
 # Arguments of the function
 
 The command `download_wid` has the following arguments:
-```{r, eval=FALSE}
+```{r, eval = interactive(), eval=FALSE}
 download_wid(
     indicators, # Codes corresponding to indicators to retrieve
     areas, # Areas (mostly countries) for which to retrieve the indicators
@@ -165,7 +165,7 @@ Shares and wealth/income ratios are given as a fraction of 1. That is, a top 1% 
 
 Here we simply seek the top 1% shares of pre-tax national income in the United States over the period 2010--2015. The function `download_wid` returns a `data.frame` with the desired data.
 
-```{r}
+```{r, eval = interactive()}
 data <- download_wid(
     indicators = "sptinc", # Shares of pre-tax national income
     areas = "US", # In the United States
@@ -177,7 +177,7 @@ kable(data) # Pretty display of the data.frame
 
 If we also request the metadata, the `data.frame` also contains additional columns with extra information.
 
-```{r}
+```{r, eval = interactive()}
 library(plyr)
 data <- wid::download_wid(
     indicators = "sptinc", # Shares of pre-tax national income
@@ -195,7 +195,7 @@ Here, the metadata is the same for all observations because we only requested on
 
 In this example, we still select only one indicator, but we ask for two different percentiles. The function still returns a `data.frame` in “long” format, which makes it easy to plot with `ggplot2`.
 
-```{r, message=FALSE, fig.align='center', fig.height=4}
+```{r, eval = interactive(), message=FALSE, fig.align='center', fig.height=4}
 data <- download_wid(
     indicators = "shweal", # Shares of personal wealth
     areas = "FR", # In France
@@ -217,7 +217,7 @@ ggplot(data) +
 
 We now focus solely on the bottom half of the population (`p0p50`), and look at the average pre-tax national income in three different countries (France, United States and China). Since we are looking at monetary amounts for three different countries, we need to convert them into the same currency using the purchasing power parities in the database.
 
-```{r, message=FALSE, fig.align='center', fig.height=4}
+```{r, eval = interactive(), message=FALSE, fig.align='center', fig.height=4}
 # We use the tidyverse to manipulate the data, see http://tidyverse.org
 library(tidyverse)
 
@@ -254,7 +254,7 @@ ggplot(data) +
 
 We now plot the evolution of average net national income per adult in France, Germany, the United Kingdom and the United States.
 
-```{r, message=FALSE, fig.align='center', fig.height=4}
+```{r, eval = interactive(), message=FALSE, fig.align='center', fig.height=4}
 
 # Average national income data
 data <- download_wid(
@@ -288,7 +288,7 @@ ggplot(data) +
 
 Yet another way of observing an increase in inequality is to observe how the different fractiles of the distribution have evolved since a reference year. In the following graph, you can see that the different percentiles of the US distribution of pre-tax national income had a similar evolution throughout the 1970s, and then started to diverge after 1980.
 
-```{r, message=FALSE, fig.align='center', fig.height=4}
+```{r, eval = interactive(), message=FALSE, fig.align='center', fig.height=4}
 data <- download_wid(
     indicators = "tptinc", # Thresholds of pre-tax national income
     areas = "US", # United States
@@ -319,7 +319,7 @@ ggplot(data) +
 
 In some countries, many data points are the result of interpolations or extrapolations. For example, estimates in most African countries are based on surveys that are only realized every few years, which we interpolate to produce yearly series and perform regional aggregations. For example, takethe inequality series for Mozambique:
 
-```{r, message=FALSE, fig.align='center', fig.height=4}
+```{r, eval = interactive(), message=FALSE, fig.align='center', fig.height=4}
 data <- download_wid(
     indicators = "sptinc", # Shares of pre-tax national income
     areas = "MZ", # Mozambique
@@ -337,7 +337,7 @@ ggplot(data, aes(x = year, y = value, color = percentile)) +
 
 The linear interpolation is quite visible. In some contexts, this might be undesirable. To exclude interpolated points, use `include_extrapolations = FALSE`:
 
-```{r, message=FALSE, fig.align='center', fig.height=4}
+```{r, eval = interactive(), message=FALSE, fig.align='center', fig.height=4}
 data <- download_wid(
     indicators = "sptinc", # Shares of pre-tax national income
     areas = "MZ", # Mozambique

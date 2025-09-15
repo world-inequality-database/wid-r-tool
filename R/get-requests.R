@@ -154,115 +154,97 @@ get_data_variables <- function(areas, variables, no_extrapolation = FALSE) {
 #'
 #' @param areas List of area codes.
 #' @param variables List of variables, of the form: \code{"xxxxxx_pXXpYY_999_i"}
+#' @param report_missing Logical, whether to report missing metadata (default TRUE)
+#' @param collected_metadata List of metadata already collected (default NULL)
 #'
 #' @importFrom httr GET add_headers content
 #' @importFrom base64enc base64encode
 #' @importFrom jsonlite fromJSON
 
 get_metadata_variables <- function(areas, variables, report_missing = TRUE, collected_metadata = NULL) {
-    # Concatenate area codes, variables
     query_areas <- paste(areas, collapse = ",")
     query_variables <- paste(variables, collapse = ",")
 
-    # Perform request
     url <- paste0(
         "https://rfap9nitz6.execute-api.eu-west-1.amazonaws.com/prod/",
         "countries-variables-metadata?countries=", query_areas,
-        "&variables=", query_variables)
+        "&variables=", query_variables
+    )
     response_request <- GET(url, add_headers("x-api-key" = base64encode(api_key)))
     response_content <- content(response_request, as = "text", encoding = "UTF-8")
     response_json <- fromJSON(response_content, simplifyVector = FALSE)
 
+    # Fail-safe for empty metadata_func
+    if (is.null(response_json[[1]]$metadata_func) || length(response_json[[1]]$metadata_func) == 0) {
+        warning("No metadata returned from API for given areas/variables")
+        return(list(response_table = data.frame(), collected_metadata = collected_metadata))
+    }
+
+    safe_scalar <- function(x) if (length(x) == 0) NA else x
+
     response_table <- data.frame()
     response_json <- response_json[[1]]$metadata_func
-
-    missing_metadata <- list()
     all_returned_areas <- c()
 
     for (json_variable in response_json) {
-        # Extract variable name
         variable <- names(json_variable)
-        # Extract the various metadata
         json_name  <- json_variable[[variable]][[1]][[1]]
         json_type  <- json_variable[[variable]][[2]][[1]]
         json_pop   <- json_variable[[variable]][[3]][[1]]
         json_age   <- json_variable[[variable]][[4]][[1]]
         json_units <- json_variable[[variable]][[5]][[1]]
         json_notes <- json_variable[[variable]][[6]][[1]]
-        # The item "unit" (5th position) is always filled, so we use it to
-        # loop over the different countries
+
         for (meta_country in json_units) {
-          
             all_returned_areas <- c(all_returned_areas, meta_country$country)
+
             meta_note <- NULL
-            for (note in json_notes[[1]][[1]]) {
-                if (note$alpha2 == meta_country$country) {
+            for (note in json_notes) {
+                if (!is.null(note) && length(note) > 0 && !is.null(note$alpha2) && note$alpha2 == meta_country$country) {
                     meta_note <- note
+                    break
                 }
             }
-            meta <- data.frame(variable = variable, stringsAsFactors = FALSE)
+            if (is.null(meta_note)) meta_note <- list(
+                method = NA, source = NA, data_quality = NA, imputation = NA
+            )
 
-            meta$unit     <- meta_country$metadata$unit
-            meta$unitname <- meta_country$metadata$unit_name
-
-            meta$shortname    <- json_name$shortname
-            meta$shortdes     <- json_name$simpledes
-            meta$technicaldes <- json_name$technicaldes
-
-            meta$shorttype <- json_type$shortdes
-            meta$longtype  <- json_type$longtype
-
-            meta$shortpop <- json_pop$shortdes
-            meta$pop      <- json_pop$longdes
-
-            meta$shortage <- json_age$shortname
-            meta$age      <- json_age$fullname
-
-            meta$country     <- meta_country$country
-            meta$countryname <- meta_country$country_name
-
-            # Handle potential missing metadata by setting them to NA
-            meta$method     <- if (!is.null(meta_note$method)) meta_note$method else NA
-            meta$source     <- if (!is.null(meta_note$source)) meta_note$source else NA
-            meta$quality    <- if (!is.null(meta_note$data_quality)) meta_note$data_quality else NA
-            meta$imputation <- if (!is.null(meta_note$imputation)) meta_note$imputation else NA
-
-
-            # Identify missing fields
-            missing_fields <- names(meta)[sapply(meta, function(x) all(is.na(x)))]
-            if (length(missing_fields) > 0) {
-              if (!(variable %in% names(collected_metadata))) {
-                collected_metadata[[variable]] <- list()
-              }
-              key <- paste(sort(missing_fields), collapse = ", ")  
-              if (!(key %in% names(collected_metadata[[variable]]))) {
-                collected_metadata[[variable]][[key]] <- c()
-              }
-              #collected_metadata[[variable]][[key]] <- c(collected_metadata[[variable]][[key]], meta$country)
-              collected_metadata[[variable]][[key]] <- unique(c(collected_metadata[[variable]][[key]], meta$country))
-              
-            }
+            meta <- data.frame(
+                variable       = safe_scalar(variable),
+                unit           = safe_scalar(meta_country$metadata$unit),
+                unitname       = safe_scalar(meta_country$metadata$unit_name),
+                shortname      = safe_scalar(json_name$shortname),
+                shortdes       = safe_scalar(json_name$simpledes),
+                technicaldes   = safe_scalar(json_name$technicaldes),
+                shorttype      = safe_scalar(json_type$shortdes),
+                longtype       = safe_scalar(json_type$longtype),
+                shortpop       = safe_scalar(json_pop$shortdes),
+                pop            = safe_scalar(json_pop$longdes),
+                shortage       = safe_scalar(json_age$shortname),
+                age            = safe_scalar(json_age$fullname),
+                country        = safe_scalar(meta_country$country),
+                countryname    = safe_scalar(meta_country$country_name),
+                method         = safe_scalar(meta_note$method),
+                source         = safe_scalar(meta_note$source),
+                quality        = safe_scalar(meta_note$data_quality),
+                imputation     = safe_scalar(meta_note$imputation),
+                stringsAsFactors = FALSE
+            )
 
             response_table <- rbind(response_table, meta)
         }
-        
-        # **After processing all countries, check for completely missing ones**
+
         missing_countries <- setdiff(areas, all_returned_areas)
-        if (length(missing_countries) > 0) {
-          if (!(variable %in% names(collected_metadata))) {
-            collected_metadata[[variable]] <- list()
-          }
-          if (!("Completely missing" %in% names(collected_metadata[[variable]]))) {
-            collected_metadata[[variable]][["Completely missing"]] <- c()
-          }
-          collected_metadata[[variable]][["Completely missing"]] <- unique(c(
-            collected_metadata[[variable]][["Completely missing"]],
-            missing_countries
-          ))
+        if (length(missing_countries) > 0 && !is.null(collected_metadata)) {
+            if (!(variable %in% names(collected_metadata))) collected_metadata[[variable]] <- list()
+            if (!("Completely missing" %in% names(collected_metadata[[variable]]))) collected_metadata[[variable]][["Completely missing"]] <- c()
+            collected_metadata[[variable]][["Completely missing"]] <- unique(c(
+                collected_metadata[[variable]][["Completely missing"]],
+                missing_countries
+            ))
         }
     }
 
-    # Clarify meaning of 'imputation'
     response_table$imputation[response_table$imputation == "region"]    <- "regional imputation"
     response_table$imputation[response_table$imputation == "survey"]    <- "adjusted surveys"
     response_table$imputation[response_table$imputation == "tax"]       <- "surveys and tax data"
@@ -270,6 +252,5 @@ get_metadata_variables <- function(areas, variables, report_missing = TRUE, coll
     response_table$imputation[response_table$imputation == "rescaling"] <- "rescaled fiscal income"
 
     return(list(response_table = response_table, collected_metadata = collected_metadata))
-    #return(response_table)
 }
 
