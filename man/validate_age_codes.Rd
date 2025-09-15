@@ -2,7 +2,7 @@
 % Please edit documentation in R/validation.R
 \name{validate_age_codes}
 \alias{validate_age_codes}
-\title{Validate age codes for WID database}
+\title{Age Code Validation for WID Database}
 \usage{
 validate_age_codes(ages)
 }
@@ -13,5 +13,17 @@ validate_age_codes(ages)
 Character vector of validated 3-digit age codes
 }
 \description{
-Validate age codes for WID database
+This module provides robust validation and standardisation of age codes used in the World Inequality Database. It handles mixed input types (numeric, character, NA) and ensures consistent 3-digit zero-padded output format required by the WID API.
+
+The validation system supports:
+- Numeric age codes (0-999)
+- Character age codes ("0"-"999")
+- Special "all" keyword for all-ages queries
+- Vector inputs with mixed types
+- Comprehensive error handling with informative messages
+
+All valid age codes are returned as zero-padded 3-character strings (e.g., 5 becomes "005", "65" becomes "065") to maintain consistency with WID database conventions.
+}
+\author{
+Cheryl Isabella Lim
 }
