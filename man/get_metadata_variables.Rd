@@ -15,6 +15,10 @@ get_metadata_variables(
 \item{areas}{List of area codes.}
 
 \item{variables}{List of variables, of the form: \code{"xxxxxx_pXXpYY_999_i"}}
+
+\item{report_missing}{Logical, whether to report missing metadata (default TRUE)}
+
+\item{collected_metadata}{List of metadata already collected (default NULL)}
 }
 \description{
 Perform GET request to the server to retrieve metadata

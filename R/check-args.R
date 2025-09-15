@@ -82,25 +82,19 @@ check_perc <- function(perc) {
 #' @param ages List of age codes
 
 check_ages <- function(ages) {
-    if (length(ages) > 1 || ages != "all") {
-        ages_num <- suppressWarnings(as.numeric(ages))
-        invalid <- is.na(ages_num) | ages_num > 999 | ages_num < 100
-        if (any(invalid)) {
-            stop(paste("ages must be numerical codes between 100 and 999, the",
-                "following are invalid:", paste(ages[invalid], collapse=", ")))
-        }
-    }
+  # Updated to use new validation (Issue #6 fix)
+  if (is.null(ages) || identical(ages, "all")) {
+    return(invisible())
+  }
+  
+  # Use the new validation logic
+  tryCatch({
+    validate_age_codes(ages)
+    return(invisible())
+  }, error = function(e) {
+    stop(e$message, call. = FALSE)
+  })
 }
-
-#' @title Check list of population codes
-#'
-#' @author Thomas Blanchet
-#'
-#' @description Check that the list of population codes submitted by the
-#' user is valid.
-#'
-#' @param pop List of population codes
-
 check_pop <- function(pop) {
     if (length(pop) > 1 || pop != "all") {
         invalid <- !grepl("^[ijmfte]$", pop)
