@@ -1,7 +1,7 @@
 Package: wid
 Type: Package
 Title: Download Data from the World Inequality Database
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(person("Thomas", "Blanchet", email = "thomas.blanchet@wid.world", role = "aut"),person("Ignacio", "Flores", email = "stats@wid.world", role = "cre"))
 Author: Thomas Blanchet [aut],
     Ignacio Flores [cre]
@@ -16,7 +16,6 @@ Description: Download data from the online World Inequality Database directly
     countries from all continents.
 License: MIT + file LICENSE
 Encoding: UTF-8
-RoxygenNote: 7.1.2
 Depends: R (>= 2.10)
 Imports:
     httr (>= 1.2.1),
@@ -31,3 +30,4 @@ Suggests:
     ggplot2 (>= 2.2.1),
     scales (>= 0.4.1),
     tidyverse (>= 1.1.1)
+Config/roxygen2/version: 8.0.0

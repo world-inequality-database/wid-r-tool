@@ -8,7 +8,8 @@ get_metadata_variables(
   areas,
   variables,
   report_missing = TRUE,
-  collected_metadata = NULL
+  collected_metadata = NULL,
+  environment = c("prod", "dev")
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ get_metadata_variables(
 \item{report_missing}{Logical: report any missing metadata when set to TRUE.}
 
 \item{collected_metadata}{List used to accumulate missing metadata across calls.}
+
+\item{environment}{= either "prod" or "dev"; default = "prod".}
 }
 \description{
 Perform GET request to the server to retrieve metadata

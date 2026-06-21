@@ -6,7 +6,7 @@
 #' user is valid.
 #'
 #' @param indicators List of indicators.
-
+#' @export
 check_indicators <- function(indicators) {
     if (length(indicators) > 1 || indicators != "all") {
         invalid <- !grepl("^[a-z]{6}$", indicators)
@@ -25,7 +25,7 @@ check_indicators <- function(indicators) {
 #' user is valid.
 #'
 #' @param areas List of area codes
-
+#' @export
 check_areas <- function(areas) {
   if (length(areas) > 1 || areas != "all") {
     invalid <- !grepl("^[A-Z]{2}(-[A-Z]{2,3})?$", areas)
@@ -43,7 +43,7 @@ check_areas <- function(areas) {
 #' @description Check that the list of years submitted by the user is valid
 #'
 #' @param years List of years
-
+#' @export
 check_years <- function(years) {
     if (length(years) > 1 || years != "all") {
         years_num <- suppressWarnings(as.numeric(years))
@@ -61,7 +61,7 @@ check_years <- function(years) {
 #' @description Check that the list of percentiles submitted by the user is valid
 #'
 #' @param perc List of percentiles
-
+#' @export
 check_perc <- function(perc) {
     if (length(perc) > 1 || perc != "all") {
         invalid <- !grepl("^p[0-9]+(\\.[0-9]+)?(p[0-9]+(\\.[0-9]+)?)?$", perc)
@@ -80,7 +80,7 @@ check_perc <- function(perc) {
 #' user is valid.
 #'
 #' @param ages List of age codes
-
+#' @export
 check_ages <- function(ages) {
     if (length(ages) > 1 || ages != "all") {
         ages_num <- suppressWarnings(as.numeric(ages))
@@ -100,7 +100,7 @@ check_ages <- function(ages) {
 #' user is valid.
 #'
 #' @param pop List of population codes
-
+#' @export
 check_pop <- function(pop) {
     if (length(pop) > 1 || pop != "all") {
         invalid <- !grepl("^[ijmfte]$", pop)

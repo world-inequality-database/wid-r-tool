@@ -4,7 +4,12 @@
 \alias{get_data_variables}
 \title{Get data associated to a list of variables}
 \usage{
-get_data_variables(areas, variables, no_extrapolation = FALSE)
+get_data_variables(
+  areas,
+  variables,
+  no_extrapolation = FALSE,
+  environment = c("prod", "dev")
+)
 }
 \arguments{
 \item{areas}{List of area codes.}
@@ -13,6 +18,8 @@ get_data_variables(areas, variables, no_extrapolation = FALSE)
 
 \item{no_extrapolation}{Logical: should interpolated/extrapolated years be
 included or not?}
+
+\item{environment}{= either "prod" or "dev"; default = "prod".}
 }
 \description{
 Perform GET request to the server to retrieve data associated

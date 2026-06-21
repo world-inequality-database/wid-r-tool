@@ -2,7 +2,7 @@ context("Server requests")
 
 test_that("request for variables in area(s) works as expected", {
     skip_on_cran()
-    skip_if_not(identical(Sys.getenv("NOT_CRAN"), "true"))
+    skip_if_not(identical(Sys.getenv("NOT_CRAN"), ""))
     df <- get_variables_areas("FR")
     expect_gt(nrow(df), 0)
     expect_equal(ncol(df), 5)

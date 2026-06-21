@@ -7,26 +7,30 @@
 #'
 #' @param areas List of area codes.
 #' @param sixlet Six-letter code for which to fetch variables.
+#' @param environment = either "prod" or "dev"; default = "prod".
 #'
 #' @importFrom httr GET add_headers content
 #' @importFrom base64enc base64encode
 #' @importFrom jsonlite fromJSON
 #' @importFrom utils capture.output str
-
-environment <- "prod" # "dev" or "prod"
-base_api_url <- paste0("https://rfap9nitz6.execute-api.eu-west-1.amazonaws.com/", environment, "/")
-
-get_variables_areas <- function(areas, sixlet = "all") {
+#' @export
+get_variables_areas <- function(areas, sixlet = "all",
+    environment=c("prod", "dev") ) {
+    # Check environment
+    environment <- match.arg(environment)
     # Concatenate area codes
     query_areas <- paste(areas, collapse = ",")
 
     # Perform request
     url <- paste0(
-        base_api_url,
-        "countries-available-variables?countries=", query_areas, "&variables=", sixlet
+        base_api_url(environment),
+        "countries-available-variables?countries=", query_areas, "&variables=",
+        sixlet
     )
-    response_request <- GET(url, add_headers("x-api-key" = base64encode(api_key)))
-    response_content <- content(response_request, as = "text", encoding = "UTF-8")
+    response_request <- GET(url, add_headers("x-api-key" =
+                                                 base64encode(api_key)))
+    response_content <- content(response_request, as = "text", encoding =
+                                    "UTF-8")
     response_json <- fromJSON(response_content, simplifyVector = FALSE)
     if (length(response_json) == 1) {
         response_json <- response_json[[1]]
@@ -67,27 +71,30 @@ get_variables_areas <- function(areas, sixlet = "all") {
 #' @param variables List of variables, of the form: \code{"xxxxxx_pXXpYY_999_i"}
 #' @param no_extrapolation Logical: should interpolated/extrapolated years be
 #' included or not?
+#' @param environment = either "prod" or "dev"; default = "prod".
 #'
 #' @importFrom httr GET add_headers content
 #' @importFrom base64enc base64encode
 #' @importFrom jsonlite fromJSON
-
-get_data_variables <- function(areas, variables, no_extrapolation = FALSE) {
+#' @export
+get_data_variables <- function(areas, variables, no_extrapolation = FALSE,
+                               environment=c("prod", "dev") ) {
+    # Check environment
+    environment <- match.arg(environment)
     # Concatenate area codes, variables
     query_areas <- paste(areas, collapse = ",")
     query_variables <- paste(variables, collapse = ",")
-
     # Perform request
     url <- paste0(
-        base_api_url,
+        base_api_url(environment),
         "countries-variables?countries=", query_areas,
         "&variables=", query_variables, "&years=all"
     )
     response_request <- GET(url, add_headers("x-api-key" = base64encode(api_key)))
     response_content <- content(response_request, as = "text", encoding = "UTF-8")
     response_json <- fromJSON(response_content, simplifyVector = FALSE)
-    
-    #handle large payload 
+
+    #handle large payload
     if (is.list(response_json) && !is.null(response_json$status)) {
         if (response_json$status == "payload_too_large") {
             message("Downloading large data from alternative route (please wait)")
@@ -116,8 +123,8 @@ get_data_variables <- function(areas, variables, no_extrapolation = FALSE) {
     if (!is.list(response_json)) {
         stop("server response invalid")
     }
-    
-    
+
+
     response_table <- data.frame()
     for (variable in names(response_json)) {
         json_variable <- response_json[[variable]]
@@ -191,22 +198,29 @@ get_data_variables <- function(areas, variables, no_extrapolation = FALSE) {
 #' @param variables List of variables, of the form: \code{"xxxxxx_pXXpYY_999_i"}
 #' @param report_missing Logical: report any missing metadata when set to TRUE.
 #' @param collected_metadata List used to accumulate missing metadata across calls.
+#' @param environment = either "prod" or "dev"; default = "prod".
+#'
 #' @importFrom httr GET add_headers content
 #' @importFrom base64enc base64encode
 #' @importFrom jsonlite fromJSON
-
-get_metadata_variables <- function(areas, variables, report_missing = TRUE, collected_metadata = NULL) {
-    # Concatenate area codes, variables
+#' @export
+get_metadata_variables <- function(areas, variables, report_missing = TRUE,
+    collected_metadata = NULL, environment=c("prod", "dev") ) {
+    # Check environment
+    environment <- match.arg(environment)
+    # Concatenate area codes
     query_areas <- paste(areas, collapse = ",")
     query_variables <- paste(variables, collapse = ",")
 
     # Perform request
     url <- paste0(
-        base_api_url,
+        base_api_url(environment),
         "countries-variables-metadata?countries=", query_areas,
         "&variables=", query_variables)
-    response_request <- GET(url, add_headers("x-api-key" = base64encode(api_key)))
-    response_content <- content(response_request, as = "text", encoding = "UTF-8")
+    response_request <- GET(url, add_headers("x-api-key" =
+                                                 base64encode(api_key)))
+    response_content <- content(response_request, as = "text",
+                                encoding = "UTF-8")
     response_json <- fromJSON(response_content, simplifyVector = FALSE)
 
     response_table <- data.frame()
@@ -228,7 +242,7 @@ get_metadata_variables <- function(areas, variables, report_missing = TRUE, coll
         # The item "unit" (5th position) is always filled, so we use it to
         # loop over the different countries
         for (meta_country in json_units) {
-          
+
             all_returned_areas <- c(all_returned_areas, meta_country$country)
             meta_note <- NULL
             for (note in json_notes[[1]][[1]]) {
@@ -270,18 +284,18 @@ get_metadata_variables <- function(areas, variables, report_missing = TRUE, coll
               if (!(variable %in% names(collected_metadata))) {
                 collected_metadata[[variable]] <- list()
               }
-              key <- paste(sort(missing_fields), collapse = ", ")  
+              key <- paste(sort(missing_fields), collapse = ", ")
               if (!(key %in% names(collected_metadata[[variable]]))) {
                 collected_metadata[[variable]][[key]] <- c()
               }
               #collected_metadata[[variable]][[key]] <- c(collected_metadata[[variable]][[key]], meta$country)
               collected_metadata[[variable]][[key]] <- unique(c(collected_metadata[[variable]][[key]], meta$country))
-              
+
             }
 
             response_table <- rbind(response_table, meta)
         }
-        
+
         # **After processing all countries, check for completely missing ones**
         missing_countries <- setdiff(areas, all_returned_areas)
         if (length(missing_countries) > 0) {

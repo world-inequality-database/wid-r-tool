@@ -10,7 +10,7 @@
 #' code names of the indicators in the database. Default is \code{"all"} for all
 #' indicators. See 'Details' for more.
 #' @param areas List of strings, or \code{"all"}: area code names of the
-#' database. \code{"XX"} for countries/regions, 
+#' database. \code{"XX"} for countries/regions,
 #' \code{"XX-YY"} for infra-national regions. \code{"XX-YYY"} for supra-national regions.
 #' Default is \code{"all"} for all areas. See 'Details' for more.
 #' @param perc List of strings, or \code{"all"}: percentiles take the form
@@ -100,7 +100,7 @@
 #'
 #' For example, \code{sfiinc} corresponds to the share of fiscal income,
 #' \code{ahweal} corresponds to average personal wealth. If you don't specify
-#' any indicator, it defaults to \code{"all"} and downloads all available indicators. 
+#' any indicator, it defaults to \code{"all"} and downloads all available indicators.
 #' Check \url{https://wid.world/codes-dictionary/} for a full list of codes.
 #' }
 #'
@@ -222,7 +222,7 @@
 download_wid <- function(indicators = "all", areas = "all", years = "all", perc = "all",
                          ages = "all", pop = "all", metadata = FALSE,
                          include_extrapolations = TRUE, verbose = FALSE) {
-  
+
     if (identical(indicators, "all") && identical(areas, "all")) {
       stop("you must select at least some specific indicators, areas, or both.")
     }
@@ -240,7 +240,8 @@ download_wid <- function(indicators = "all", areas = "all", years = "all", perc 
     }
 
     # Get the variables associated to the area(s)
-    variables <- ldply(indicators, function(sixlet) get_variables_areas(areas, sixlet))
+    variables <- ldply(indicators, function(sixlet)
+        get_variables_areas(areas, sixlet))
 
     # If empty response, return NULL
     if (nrow(variables) == 0) {
@@ -279,16 +280,20 @@ download_wid <- function(indicators = "all", areas = "all", years = "all", perc 
 
     # Only keep the variables that match the user selection
     if (!is.null(df_indicators)) {
-        variables <- merge(variables, df_indicators, by = "variable", all.x = FALSE, all.y = FALSE)
+        variables <- merge(variables, df_indicators, by = "variable",
+                           all.x = FALSE, all.y = FALSE)
     }
     if (!is.null(df_perc)) {
-        variables <- merge(variables, df_perc, by = "percentile", all.x = FALSE, all.y = FALSE)
+        variables <- merge(variables, df_perc, by = "percentile",
+                           all.x = FALSE, all.y = FALSE)
     }
     if (!is.null(df_ages)) {
-        variables <- merge(variables, df_ages, by = "age", all.x = FALSE, all.y = FALSE)
+        variables <- merge(variables, df_ages, by = "age", all.x = FALSE,
+                           all.y = FALSE)
     }
     if (!is.null(df_pop)) {
-        variables <- merge(variables, df_pop, by = "pop", all.x = FALSE, all.y = FALSE)
+        variables <- merge(variables, df_pop, by = "pop", all.x = FALSE,
+                           all.y = FALSE)
     }
 
     # Check that there are some data left
@@ -391,34 +396,38 @@ download_wid <- function(indicators = "all", areas = "all", years = "all", perc 
             variables$pop,
             sep = "_"
         )
-        variables <- variables[!duplicated(variables[, c("country", "variable")]), ]
+        variables <- variables[!duplicated(variables[,
+                                    c("country", "variable")]), ]
         variables$chunk <- floor(1:nrow(variables)/50)
         collected_metadata <- list()
-        
-        data_metadata_list <- plyr::dlply(variables, "chunk", function(variables) {
+
+        data_metadata_list <- plyr::dlply(variables, "chunk",
+                                          function(variables) {
           query_codes <- unique(variables$metadata_codes)
           query_areas <- unique(variables$country)
-          
-          result <- get_metadata_variables(query_areas, query_codes, report_missing = FALSE, collected_metadata)
-          collected_metadata <<- result$collected_metadata  # Update global collection
+
+          result <- get_metadata_variables(query_areas, query_codes,
+                            report_missing = FALSE, collected_metadata)
+          collected_metadata <<- result$collected_metadata
+          # Update global collection
           return(result$response_table)
         }, .progress = ifelse(verbose, "text", "none"))
-        
+
         # Combine all metadata into one data frame
         data_metadata <- do.call(rbind, data_metadata_list)
-        
-        #Print missing metadata info 
+
+        #Print missing metadata info
         if (length(collected_metadata) > 0) {
           message("\nMissing Metadata:")
           for (var in names(collected_metadata)) {
             cat("\n Variable:", var, "\n")
-            
+
             # Print "Completely Missing" first, if applicable
             if ("Completely missing" %in% names(collected_metadata[[var]])) {
               cat("  Completely missing (no metadata at all):\n")
               cat("      Areas:", paste(sort(collected_metadata[[var]][["Completely missing"]]), collapse = ", "), "\n\n")
             }
-            
+
             # Print other missing fields
             for (key in names(collected_metadata[[var]])) {
               if (key != "Completely missing") {  # Skip since we printed it already
@@ -428,8 +437,8 @@ download_wid <- function(indicators = "all", areas = "all", years = "all", perc 
             }
           }
         }
-        
-        
+
+
         data_metadata$chunk <- NULL
 
         # Remove percentile from variable

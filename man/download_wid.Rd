@@ -22,7 +22,7 @@ code names of the indicators in the database. Default is \code{"all"} for all
 indicators. See 'Details' for more.}
 
 \item{areas}{List of strings, or \code{"all"}: area code names of the
-database. \code{"XX"} for countries/regions, 
+database. \code{"XX"} for countries/regions,
 \code{"XX-YY"} for infra-national regions. \code{"XX-YYY"} for supra-national regions.
 Default is \code{"all"} for all areas. See 'Details' for more.}
 
@@ -151,7 +151,7 @@ Some of the most common possibilities include:
 
 For example, \code{sfiinc} corresponds to the share of fiscal income,
 \code{ahweal} corresponds to average personal wealth. If you don't specify
-any indicator, it defaults to \code{"all"} and downloads all available indicators. 
+any indicator, it defaults to \code{"all"} and downloads all available indicators.
 Check \url{https://wid.world/codes-dictionary/} for a full list of codes.
 }
 
